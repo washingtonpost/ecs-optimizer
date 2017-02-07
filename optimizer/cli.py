@@ -22,10 +22,10 @@ def memory(cluster, hours, oversubscribe, undersubscribe):
     print 'Analyzing metrics between %s %s' % (start_date, end_date)
     ecs = ECS()
     cloudwatch = CloudWatch()
-    optimizer = MemoryOptimizer(ecs, cloudwatch)
+    optimizer = MemoryOptimizer()
 
     for service in ecs.list_services(cluster):
-        optimizer.optimize(cluster, service, start_date, end_date, oversubscribe, undersubscribe)
+        optimizer.optimize(ecs, cloudwatch, cluster, service, start_date, end_date, oversubscribe, undersubscribe)
 
 if __name__ == '__main__':
     cli()

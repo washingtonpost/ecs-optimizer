@@ -17,6 +17,12 @@ setup(
             "ecs-optimizer=optimizer.cli:cli",
         ]
     },
+    setup_requires=[
+        'pytest-runner'
+    ],
+    tests_require=[
+        'pytest',
+    ],
     namespace_packages = ['optimizer'],
     author="Patrick Cullen and the WaPo platform tools team",
     author_email="opensource@washingtonpost.com",
