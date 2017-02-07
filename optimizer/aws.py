@@ -71,12 +71,12 @@ class CloudWatch(object):
         self.ecs = boto3.client('ecs', region_name=region)
         self.cloudwatch = boto3.client('cloudwatch', region_name=region)
 
-    def max_memory_utilization(self, cluster, service):
+    def max_memory_utilization(self, cluster, service, start_date, end_date):
 	response = self._cloudwatch_get_metric_statistics(Namespace='AWS/ECS',
 	    MetricName='MemoryUtilization',
 	    Dimensions=[{'Name': 'ClusterName', 'Value': cluster}, {'Name': 'ServiceName', 'Value': service}],
-	    StartTime=datetime(2017, 2, 1),
-	    EndTime=datetime(2017, 2, 5),
+	    StartTime=start_date,
+	    EndTime=end_date,
 	    Period=3600,
 	    Statistics=['Maximum'],
             Unit='Percent')

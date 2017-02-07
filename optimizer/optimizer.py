@@ -4,8 +4,8 @@ class MemoryOptimizer(object):
         self.cloudwatch = cloudwatch
         self.min_memory_unit = 64 # 64MB before recommending any changes
 
-    def optimize(self, cluster, service, oversubscribe, undersubscribe):
-        max_memory_utilization = self.cloudwatch.max_memory_utilization(cluster, service)
+    def optimize(self, cluster, service, start_date, end_date, oversubscribe, undersubscribe):
+        max_memory_utilization = self.cloudwatch.max_memory_utilization(cluster, service, start_date, end_date)
         if max_memory_utilization <= 0.0:
             return
 
