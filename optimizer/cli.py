@@ -15,9 +15,13 @@ def cli():
 @cli.command()
 @click.argument('cluster')
 @click.option('--interval', default='7d', help='How many days or hours to look back at key metrics.')
-@click.option('--over-reserve', default=0.1, help='Maximum over reservation of memory. Increasing this will increase costs.')
-@click.option('--under-reserve', default=0.1, help='Maximum under reservation of memory. Increasing this will decrease costs.')
-def services(cluster, interval, over_reserve, under_reserve):
+@click.option('--soft-over-reserve', default=0.10, help='Maximum percentage of memory reserved above peak usage before recommending a decrease in \
+              reserved memory. Increasing this will increase costs.')
+@click.option('--hard-over-reserve', default=0.25, help='Maximum percentage of memory allowed above peak usage before container will be terminated.\
+              Increasing this decreases risk of OOM termination for this service.')
+@click.option('--soft-under-reserve', default=0.1, help='Maximum percentage of memory reserved below peak usage before recommending an increase in \
+              reserved memory. Increasing this will decrease costs.')
+def services(cluster, interval, soft_over_reserve, hard_over_reserve, soft_under_reserve):
     hours = _parse_interval(interval)
     if not hours:
         print 'Invalid --interval option: %s' % interval
@@ -30,7 +34,7 @@ def services(cluster, interval, over_reserve, under_reserve):
     optimizer = MemoryOptimizer()
 
     for service in ecs.list_services(cluster):
-        optimizer.optimize(ecs, cloudwatch, cluster, service, start_date, end_date, over_reserve, under_reserve)
+        optimizer.optimize(ecs, cloudwatch, cluster, service, start_date, end_date, soft_over_reserve, hard_over_reserve, soft_under_reserve)
 
 def _parse_interval(interval):
     number = int(interval[:-1])
