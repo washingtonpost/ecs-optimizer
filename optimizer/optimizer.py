@@ -24,7 +24,7 @@ class MemoryOptimizer(object):
         soft_limit = 0
         hard_limit = 0
 
-        while (memory_chunk * 4) < low_memory:
+        while (memory_chunk * 16) < low_memory:
             prev_memory_chunk = memory_chunk
             memory_chunk *= 2
 

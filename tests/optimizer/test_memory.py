@@ -5,11 +5,8 @@ class MemoryOptimizerTest(TestCase):
     def test_service(self):
         optimizer = MemoryOptimizer()
         test_cases = {
-            # utilization, current hard/soft limit, recommended hard/soft limit
-            ('16MB', 16.0, 20, 20, 16),
-            ('48MB', 48.0, 60, 64, 48),
-            ('57.6MB', 57.6, 72, 80, 64),
-            ('72MB', 72.0, 90, 96, 96),
+            ('17MB', 17.0, 21, 24, 20),
+            ('73MB', 73.0, 90, 96, 80),
             ('2048MB', 2048.0, 2560, 2560, 2048),
             ('out of memory is lower than lower limit', 2048.0, 1024, 2048, 2048),
         }

@@ -35,7 +35,7 @@ class ECS(object):
             if not next_token:
                 more_results = False
 
-        return services
+        return sorted(services)
 
     def service_memory_reservation(self, cluster, service):
         response = self._ecs_describe_services(cluster=cluster, services=[service])
