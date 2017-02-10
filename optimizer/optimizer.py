@@ -25,34 +25,33 @@ class ServiceOptimizer(object):
         if len(recommendations):
             print "%s: %s." % (service, ", ".join(recommendations))
 
-    def recommend_memory(self, utilization, hard_limit, soft_limit, hard_over_reserve=0.25, soft_over_reserve=0.1,
-                         soft_under_reserve=0.1):
+    def recommend_memory(self, utilization, hard_limit, soft_limit, hard_over_reserve, soft_over_reserve, soft_under_reserve):
         memory = soft_limit*(utilization/100.0)
         new_soft_limit = self.calc_memory_limit(memory)
         new_hard_limit = self.calc_memory_limit(memory * (1.0 + hard_over_reserve))
 
-        hard_limit = self.optimal_value(hard_limit, new_hard_limit, hard_over_reserve)
-        soft_limit = self.optimal_value(soft_limit, new_soft_limit, soft_over_reserve, soft_under_reserve)
+        hard_limit = self.optimal_limit(memory, hard_limit, new_hard_limit, hard_over_reserve)
+        soft_limit = self.optimal_limit(memory, soft_limit, new_soft_limit, soft_over_reserve, soft_under_reserve)
 
         if hard_limit < soft_limit:
             hard_limit = soft_limit
 
         return hard_limit, soft_limit
 
-    def recommend_cpu(self, utilization, instance_cpu_capacity, cpu_shares, under_reserve=0.1, over_reserve=0.1):
+    def recommend_cpu(self, utilization, instance_cpu_capacity, cpu_shares, under_reserve, over_reserve):
         new_cpu_shares = int(round((utilization/100.0) * instance_cpu_capacity))
         if new_cpu_shares < 16:
             new_cpu_shares = 0
 
-        return self.optimal_value(cpu_shares, new_cpu_shares, over_reserve, under_reserve)
+        return self.optimal_limit(new_cpu_shares, cpu_shares, new_cpu_shares, over_reserve, under_reserve)
 
-    def optimal_value(self, value, new_value, over_reserve, under_reserve=0):
-        lower_limit = new_value * (1.0 - under_reserve)
-        upper_limit = new_value * (1.0 + over_reserve)
-        if value < lower_limit or value > upper_limit:
-            return new_value
+    def optimal_limit(self, curr_value, old_limit, new_limit, over_reserve, under_reserve=0):
+        lower_limit = curr_value * (1.0 - under_reserve)
+        upper_limit = curr_value * (1.0 + over_reserve)
+        if old_limit < lower_limit or old_limit > upper_limit:
+            return new_limit
         else:
-            return value
+            return old_limit
 
     def calc_memory_chunk_size(self, memory):
         # 4MB is the smallest memory chunk
