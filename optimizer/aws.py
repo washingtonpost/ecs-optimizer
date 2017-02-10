@@ -37,31 +37,58 @@ class ECS(object):
 
         return sorted(services)
 
-    def service_memory_reservation(self, cluster, service):
+    def service_reservations(self, cluster, service):
         response = self._ecs_describe_services(cluster=cluster, services=[service])
         for service in response.get('services', []):
             task_definition = service.get('taskDefinition')
-            return self.task_memory_reservation(task_definition)
+            return self.task_reservations(task_definition)
 
-    def task_memory_reservation(self, task_definition):
-        hard_limit = 0.0
-        soft_limit = 0.0
+    def task_reservations(self, task_definition):
+        mem_hard_limit = 0
+        mem_soft_limit = 0
+        cpu_shares = 0
         response = self._ecs_describe_task_definition(taskDefinition=task_definition)
         for container in response.get('taskDefinition', {}).get('containerDefinitions', []):
-            soft_limit += container.get('memoryReservation', 0.0)
-            hard_limit += container.get('memory', 0.0)
+            mem_soft_limit += container.get('memoryReservation', 0)
+            mem_hard_limit += container.get('memory', 0)
+            cpu_shares += container.get('cpu', 0)
 
-        return hard_limit, soft_limit
+        return cpu_shares, mem_hard_limit, mem_soft_limit
 
-    @retry(retry_on_exception=_is_retryable_exception, stop_max_delay=30000, wait_exponential_multiplier=1000)
+    def instance_capacity(self, cluster):
+        cpu_capacity = None
+        mem_capacity = None
+        response = self._ecs_list_container_instances(cluster=cluster, maxResults=1, status='ACTIVE')
+        instance_arns = response.get('containerInstanceArns', [])
+        if len(instance_arns):
+            response = self._ecs_describe_container_instances(cluster=cluster, containerInstances=instance_arns)
+            for container_instance in response.get('containerInstances', []):
+                resources = container_instance.get('registeredResources', [])
+                for resource in resources:
+                    if 'cpu' == resource.get('name').lower():
+                        cpu_capacity = resource.get('integerValue')
+                    elif 'memory' == resource.get('name').lower():
+                        mem_capacity = resource.get('integerValue')
+
+        return cpu_capacity, mem_capacity
+
+    @retry(retry_on_exception=_is_retryable_exception, stop_max_delay=5000, wait_exponential_multiplier=500)
+    def _ecs_describe_container_instances(self, **kwargs):
+        return self.ecs.describe_container_instances(**kwargs)
+
+    @retry(retry_on_exception=_is_retryable_exception, stop_max_delay=5000, wait_exponential_multiplier=500)
+    def _ecs_list_container_instances(self, **kwargs):
+        return self.ecs.list_container_instances(**kwargs)
+
+    @retry(retry_on_exception=_is_retryable_exception, stop_max_delay=5000, wait_exponential_multiplier=500)
     def _ecs_describe_task_definition(self, **kwargs):
         return self.ecs.describe_task_definition(**kwargs)
 
-    @retry(retry_on_exception=_is_retryable_exception, stop_max_delay=30000, wait_exponential_multiplier=1000)
+    @retry(retry_on_exception=_is_retryable_exception, stop_max_delay=5000, wait_exponential_multiplier=500)
     def _ecs_describe_services(self, **kwargs):
         return self.ecs.describe_services(**kwargs)
 
-    @retry(retry_on_exception=_is_retryable_exception, stop_max_delay=30000, wait_exponential_multiplier=1000)
+    @retry(retry_on_exception=_is_retryable_exception, stop_max_delay=5000, wait_exponential_multiplier=500)
     def _ecs_list_services(self, **kwargs):
         return self.ecs.list_services(**kwargs)
 
@@ -88,6 +115,26 @@ class CloudWatch(object):
                     range_max = hourly_max
 
         return range_max
+
+    def avg_cpu_utilization(self, cluster, service, start_date, end_date):
+	response = self._cloudwatch_get_metric_statistics(Namespace='AWS/ECS',
+	    MetricName='CPUUtilization',
+	    Dimensions=[{'Name': 'ClusterName', 'Value': cluster}, {'Name': 'ServiceName', 'Value': service}],
+	    StartTime=start_date,
+	    EndTime=end_date,
+	    Period=3600,
+	    Statistics=['Average'],
+            Unit='Percent')
+        range_sum = 0.0
+        count = 0
+
+        # geometrically link the hourly averages to get a range average
+        for metric in response.get('Datapoints', []):
+            hourly_avg = metric.get('Average')
+            range_sum += hourly_avg
+            count += 1
+
+        return range_sum / count
 
     @retry(retry_on_exception=_is_retryable_exception, stop_max_delay=30000, wait_exponential_multiplier=1000)
     def _cloudwatch_get_metric_statistics(self, **kwargs):

@@ -3,7 +3,7 @@ from optimizer.optimizer import MemoryOptimizer
 
 class MemoryOptimizerTest(TestCase):
     def test_service(self):
-        optimizer = MemoryOptimizer()
+        optimizer = MemoryOptimizer(None, None)
         test_cases = {
             ('17MB', 17.0, 21, 24, 20),
             ('73MB', 73.0, 90, 96, 80),
