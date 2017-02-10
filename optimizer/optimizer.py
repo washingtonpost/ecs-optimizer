@@ -9,7 +9,7 @@ class ServiceOptimizer(object):
         cpu_utilization = self.cloudwatch.avg_cpu_utilization(cluster, service, start_date, end_date)
         cpu_shares, mem_hard_limit, mem_soft_limit = self.ecs.service_reservations(cluster, service)
         instance_cpu_capacity, instance_mem_capacity = self.ecs.instance_capacity(cluster)
-        new_cpu_shares = self.recommend_cpu(cpu_utilization, instance_cpu_capacity, cpu_shares)
+        new_cpu_shares = self.recommend_cpu(cpu_utilization, instance_cpu_capacity, cpu_shares, cpu_over_reserve, cpu_under_reserve)
         new_mem_hard_limit, new_mem_soft_limit = self.recommend_memory(mem_utilization, mem_hard_limit, mem_soft_limit, mem_hard_over_reserve,
                                                                        mem_soft_over_reserve, mem_soft_under_reserve)
 
@@ -38,7 +38,7 @@ class ServiceOptimizer(object):
 
         return hard_limit, soft_limit
 
-    def recommend_cpu(self, utilization, instance_cpu_capacity, cpu_shares, under_reserve, over_reserve):
+    def recommend_cpu(self, utilization, instance_cpu_capacity, cpu_shares, over_reserve, under_reserve):
         new_cpu_shares = int(round((utilization/100.0) * instance_cpu_capacity))
         if new_cpu_shares < 16:
             new_cpu_shares = 0
