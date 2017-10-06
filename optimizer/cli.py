@@ -16,15 +16,11 @@ def cli():
 @click.argument('cluster')
 @click.option('--verbose/--no-verbose', default=False, help='Verbose output.')
 @click.option('--interval', default='7d', help='How many days or hours to look back at key metrics.')
-@click.option('--mem-soft-over-reserve', default=0.10, help='Maximum percentage of memory reserved above peak usage before recommending a decrease in \
-              reserved memory. Increasing this will increase costs.')
-@click.option('--mem-hard-over-reserve', default=0.25, help='Maximum percentage of memory allowed above peak usage before container will be terminated.\
-              Increasing this decreases risk of OOM termination for this service.')
-@click.option('--mem-soft-under-reserve', default=0.1, help='Maximum percentage of memory reserved below peak usage before recommending an increase in \
-              reserved memory. Increasing this will decrease costs.')
+@click.option('--mem-over-reserve', default=0.2, help='Maximum percentage of memory reserved above peak usage before recommending a decrease in \
+              reserved memory. Increasing this will increase costs and reduce the change your service is killed with an out of memory error.')
 @click.option('--cpu-under-reserve', default=0.1)
 @click.option('--cpu-over-reserve', default=0.1)
-def services(cluster, verbose, interval, mem_soft_over_reserve, mem_hard_over_reserve, mem_soft_under_reserve, cpu_under_reserve, cpu_over_reserve):
+def services(cluster, verbose, interval, mem_over_reserve, cpu_under_reserve, cpu_over_reserve):
     hours = _parse_interval(interval)
     if not hours:
         print 'Invalid --interval option: %s' % interval
@@ -37,9 +33,7 @@ def services(cluster, verbose, interval, mem_soft_over_reserve, mem_hard_over_re
     optimizer = ServiceOptimizer(ecs, cloudwatch)
 
     for service in ecs.list_services(cluster):
-        optimizer.optimize(verbose, cluster, service, start_date, end_date,
-                           cpu_over_reserve, cpu_under_reserve,
-                           mem_hard_over_reserve, mem_soft_over_reserve, mem_soft_under_reserve)
+        optimizer.optimize(verbose, cluster, service, start_date, end_date, cpu_over_reserve, cpu_under_reserve, mem_over_reserve)
 
 def _parse_interval(interval):
     number = int(interval[:-1])
