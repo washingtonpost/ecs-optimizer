@@ -20,7 +20,8 @@ def cli():
               reserved memory. Increasing this will increase costs and reduce the change your service is killed with an out of memory error.')
 @click.option('--cpu-under-reserve', default=0.1)
 @click.option('--cpu-over-reserve', default=0.1)
-def services(cluster, verbose, interval, mem_over_reserve, cpu_under_reserve, cpu_over_reserve):
+@click.option('--recommend-limit-decrease', default=False)
+def services(cluster, verbose, interval, mem_over_reserve, cpu_under_reserve, cpu_over_reserve, recommend_limit_decrease):
     hours = _parse_interval(interval)
     if not hours:
         print 'Invalid --interval option: %s' % interval
@@ -33,7 +34,8 @@ def services(cluster, verbose, interval, mem_over_reserve, cpu_under_reserve, cp
     optimizer = ServiceOptimizer(ecs, cloudwatch)
 
     for service in ecs.list_services(cluster):
-        optimizer.optimize(verbose, cluster, service, start_date, end_date, cpu_over_reserve, cpu_under_reserve, mem_over_reserve)
+        optimizer.optimize(verbose, cluster, service, start_date, end_date, cpu_over_reserve, cpu_under_reserve, mem_over_reserve,
+                           recommend_limit_decrease)
 
 def _parse_interval(interval):
     number = int(interval[:-1])

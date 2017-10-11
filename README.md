@@ -3,7 +3,7 @@ Optimizer your ECS cluster by learned the correct CPU and memory limits for your
 
 ```sh
 pip install ecs-optimizer
-ecs-optimizer "cluster name"
+ecs-optimizer services "My Cluster"
 ```
 
 This command will output an tasks that need limit adjustments to be optimal. You can ignore limits that are too high and only report on limits that are too low with the option --ignore-high-limits.
