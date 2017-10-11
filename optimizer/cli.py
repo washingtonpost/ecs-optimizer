@@ -16,11 +16,13 @@ def cli():
 @click.argument('cluster')
 @click.option('--verbose/--no-verbose', default=False, help='Verbose output.')
 @click.option('--interval', default='7d', help='How many days or hours to look back at key metrics.')
-@click.option('--mem-over-reserve', default=0.2, help='Maximum percentage of memory reserved above peak usage before recommending a decrease in \
-              reserved memory. Increasing this will increase costs and reduce the change your service is killed with an out of memory error.')
-@click.option('--cpu-under-reserve', default=0.1)
-@click.option('--cpu-over-reserve', default=0.1)
-@click.option('--recommend-limit-decrease', default=False)
+@click.option('--mem-over-reserve', default=0.2, help='Maximum percentage of memory reserved above peak usage before recommending a decrease. \
+              Increasing this will increase costs and reduce the chance your service is killed with an out of memory error.')
+@click.option('--cpu-under-reserve', default=0.1, help='Minimum percentage of CPU reserved below the average usage before recommending an increase. \
+              Increasing this will decrease costs and decrease the chance your service has the CPU it needs.')
+@click.option('--cpu-over-reserve', default=0.1, help='Maximum percentage of CPU reserved above average usage before recommending a decrease. \
+              Increasing this will increase costs and increase the chance your service has the CPU it needs.')
+@click.option('--recommend-limit-decrease/--no-recommend-limit-decrease', default=False, help='Recommend decrease in service limits')
 def services(cluster, verbose, interval, mem_over_reserve, cpu_under_reserve, cpu_over_reserve, recommend_limit_decrease):
     hours = _parse_interval(interval)
     if not hours:
