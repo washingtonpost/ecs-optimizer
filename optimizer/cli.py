@@ -3,8 +3,8 @@
 
 import click
 from pprint import pprint
-from aws import ECS, CloudWatch
-from optimizer import ServiceOptimizer
+from .aws import ECS, CloudWatch
+from .optimizer import ServiceOptimizer
 import datetime
 import sys
 
@@ -26,11 +26,11 @@ def cli():
 def services(cluster, verbose, interval, mem_over_reserve, cpu_under_reserve, cpu_over_reserve, recommend_limit_decrease):
     hours = _parse_interval(interval)
     if not hours:
-        print 'Invalid --interval option: %s' % interval
+        print('Invalid --interval option: %s' % interval)
         sys.exit(1)
     end_date = datetime.datetime.utcnow()
     start_date = end_date - datetime.timedelta(hours=hours)
-    print 'Analyzing metrics between %s and %s' % (start_date.strftime('%Y-%m-%d %H:%M'), end_date.strftime('%Y-%m-%d %H:%M'))
+    print('Analyzing metrics between %s and %s' % (start_date.strftime('%Y-%m-%d %H:%M'), end_date.strftime('%Y-%m-%d %H:%M')))
     ecs = ECS()
     cloudwatch = CloudWatch()
     optimizer = ServiceOptimizer(ecs, cloudwatch)

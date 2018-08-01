@@ -99,14 +99,14 @@ class CloudWatch(object):
         self.cloudwatch = boto3.client('cloudwatch', region_name=region)
 
     def max_memory_utilization(self, cluster, service, start_date, end_date):
-	response = self._cloudwatch_get_metric_statistics(Namespace='AWS/ECS',
-	    MetricName='MemoryUtilization',
-	    Dimensions=[{'Name': 'ClusterName', 'Value': cluster}, {'Name': 'ServiceName', 'Value': service}],
-	    StartTime=start_date,
-	    EndTime=end_date,
-	    Period=3600,
-	    Statistics=['Maximum'],
-            Unit='Percent')
+        response = self._cloudwatch_get_metric_statistics(Namespace='AWS/ECS',
+                                                          MetricName='MemoryUtilization',
+                                                          Dimensions=[{'Name': 'ClusterName', 'Value': cluster}, {'Name': 'ServiceName', 'Value': service}],
+                                                          StartTime=start_date,
+                                                          EndTime=end_date,
+                                                          Period=3600,
+                                                          Statistics=['Maximum'],
+                                                          Unit='Percent')
         range_max = 0.0
         for metric in response.get('Datapoints', []):
             hourly_max = metric.get('Maximum')
@@ -117,14 +117,14 @@ class CloudWatch(object):
         return range_max
 
     def avg_cpu_utilization(self, cluster, service, start_date, end_date):
-	response = self._cloudwatch_get_metric_statistics(Namespace='AWS/ECS',
-	    MetricName='CPUUtilization',
-	    Dimensions=[{'Name': 'ClusterName', 'Value': cluster}, {'Name': 'ServiceName', 'Value': service}],
-	    StartTime=start_date,
-	    EndTime=end_date,
-	    Period=3600,
-	    Statistics=['Average'],
-            Unit='Percent')
+        response = self._cloudwatch_get_metric_statistics(Namespace='AWS/ECS',
+                                                          MetricName='CPUUtilization',
+                                                          Dimensions=[{'Name': 'ClusterName', 'Value': cluster}, {'Name': 'ServiceName', 'Value': service}],
+                                                          StartTime=start_date,
+                                                          EndTime=end_date,
+                                                          Period=3600,
+                                                          Statistics=['Average'],
+                                                          Unit='Percent')
         range_sum = 0.0
         count = 0
 
@@ -134,7 +134,10 @@ class CloudWatch(object):
             range_sum += hourly_avg
             count += 1
 
-        return range_sum / count
+        if count == 0:
+            return range_sum
+        else:
+            return range_sum / count
 
     @retry(retry_on_exception=_is_retryable_exception, stop_max_delay=30000, wait_exponential_multiplier=1000)
     def _cloudwatch_get_metric_statistics(self, **kwargs):

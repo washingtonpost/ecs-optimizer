@@ -20,7 +20,7 @@ class ServiceOptimizer(object):
             recommendations.append("change CPU shares from %d to %d" % (cpu_shares, new_cpu_shares))
 
         if len(recommendations):
-            print "%s: %s." % (service, ", ".join(recommendations))
+            print("%s: %s." % (service, ", ".join(recommendations)))
 
     def recommend_memory(self, utilization, old_hard_limit, old_soft_limit, over_reserve, recommend_limit_decrease=True):
         memory = old_soft_limit*(utilization/100.0)
