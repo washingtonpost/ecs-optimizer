@@ -15,15 +15,17 @@ def cli():
 @cli.command()
 @click.argument('cluster')
 @click.option('--verbose/--no-verbose', default=False, help='Verbose output.')
-@click.option('--interval', default='7d', help='How many days or hours to look back at key metrics.')
-@click.option('--mem-over-reserve', default=0.2, help='Maximum percentage of memory reserved above peak usage before recommending a decrease. \
+@click.option('--interval', default='1d', help='How many days or hours to look back at key metrics.')
+@click.option('--mem-over-reserve', default=0.25, help='Maximum percentage of memory reserved above peak usage before recommending a decrease. \
               Increasing this will increase costs and reduce the chance your service is killed with an out of memory error.')
-@click.option('--cpu-under-reserve', default=0.1, help='Minimum percentage of CPU reserved below the average usage before recommending an increase. \
+@click.option('--cpu-under-reserve', default=0.25, help='Minimum percentage of CPU reserved below the average usage before recommending an increase. \
               Increasing this will decrease costs and decrease the chance your service has the CPU it needs.')
-@click.option('--cpu-over-reserve', default=0.1, help='Maximum percentage of CPU reserved above average usage before recommending a decrease. \
+@click.option('--cpu-over-reserve', default=0.25, help='Maximum percentage of CPU reserved above average usage before recommending a decrease. \
               Increasing this will increase costs and increase the chance your service has the CPU it needs.')
+@click.option('--min-cpu-shares', default=256, help='Minium CPU share change that is recommended. \
+              If the recommended change is less then this no change will be recommend.')
 @click.option('--recommend-limit-decrease/--no-recommend-limit-decrease', default=False, help='Recommend decrease in service limits')
-def services(cluster, verbose, interval, mem_over_reserve, cpu_under_reserve, cpu_over_reserve, recommend_limit_decrease):
+def services(cluster, verbose, interval, mem_over_reserve, cpu_under_reserve, cpu_over_reserve, min_cpu_shares, recommend_limit_decrease):
     hours = _parse_interval(interval)
     if not hours:
         print('Invalid --interval option: %s' % interval)
@@ -37,7 +39,7 @@ def services(cluster, verbose, interval, mem_over_reserve, cpu_under_reserve, cp
 
     for service in ecs.list_services(cluster):
         optimizer.optimize(verbose, cluster, service, start_date, end_date, cpu_over_reserve, cpu_under_reserve, mem_over_reserve,
-                           recommend_limit_decrease)
+                           recommend_limit_decrease, min_cpu_shares)
 
 def _parse_interval(interval):
     number = int(interval[:-1])

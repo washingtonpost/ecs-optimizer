@@ -5,18 +5,17 @@ class ServiceOptimizerTest(TestCase):
     def test_cpu(self):
         optimizer = ServiceOptimizer(None, None)
         test_cases = {
-            ('low cpu', 5.0, 4096, 0, 205),
-            ('very low cpu', 0.4, 4096, 0, 16),
-            ('extremely low cpu', 0.3, 4096, 0, 0),
+            ('low cpu', 25.0, 1024, 0, 256),
+            ('extremely low cpu', 20, 1024, 0, 0),
             ('no cpu', 0.0, 4096, 0, 0),
             ('extremely high cpu', 100.0, 4096, 0, 4096),
-            ('small over-reserved cpu', 5.0, 1024, 55, 55),
-            ('small under-reserved cpu', 5.0, 1024, 46, 46),
+            ('small over-reserved cpu', 7.0, 4096, 300, 300),
+            ('small under-reserved cpu', 8.0, 4096, 300, 300),
         }
 
         for test_case in test_cases:
             msg, utilization, instance_cpu_capacity, cpu_shares, expected_cpu_shares = test_case
-            new_cpu_shares = optimizer.recommend_cpu(utilization, instance_cpu_capacity, cpu_shares, 0.1, 0.1)
+            new_cpu_shares = optimizer.recommend_cpu(utilization, instance_cpu_capacity, cpu_shares, 0.1, 0.1, True, 256)
 
             self.assertEquals(expected_cpu_shares, new_cpu_shares, 'cpu shares %s != %s %s' % (expected_cpu_shares, new_cpu_shares, msg))
 
@@ -33,7 +32,7 @@ class ServiceOptimizerTest(TestCase):
 
         for test_case in test_cases:
             msg, utilization, hard_limit, soft_limit, expected_hard_limit, expected_soft_limit = test_case
-            new_limit = optimizer.recommend_memory(utilization, hard_limit, soft_limit, 0.25)
+            new_limit = optimizer.recommend_memory(utilization, hard_limit, soft_limit, 0.25, True)
 
             self.assertEquals(expected_soft_limit, new_limit, 'soft limit %s != %s %s' % (expected_soft_limit, new_limit, msg))
             self.assertEquals(expected_hard_limit, new_limit, 'hard limit %s != %s %s' % (expected_hard_limit, new_limit, msg))
